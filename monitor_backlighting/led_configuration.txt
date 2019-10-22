@@ -1,0 +1,5 @@
+origin =  top right screen corner
+
+path = ccw
+
+led_quantity = 56
