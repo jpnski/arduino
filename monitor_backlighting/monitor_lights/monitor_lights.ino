@@ -1,7 +1,7 @@
 #include <FastLED.h>
 #include <pixeltypes.h>
 
-// WS2812B (neopixel) LED information
+// WS2812B LED information
 #define NUM_LEDS 56
 #define DATA_PIN 5
 
@@ -9,11 +9,11 @@
 const int potInput = A2;
 
 // array size for input smoothing
-const int numReadings = 10;
+const int batch = 10;
 
-int readings[numReadings];
-int readIndex = 0;
-int total = 0;
+int readings[batch];
+int index = 0;
+int sum = 0;
 int average = 0;
 
 CRGB leds[NUM_LEDS];
@@ -21,8 +21,8 @@ CRGB leds[NUM_LEDS];
 void setup(){
   Serial.begin(9600);
 
-  for (int thisReading = 0; thisReading < numReadings; thisReading++) {
-    readings[thisReading] = 0;
+  for (int sample = 0; sample < batch; sample++) {
+    readings[sample] = 0;
    } 
 
   FastLED.addLeds<NEOPIXEL, DATA_PIN>(leds, NUM_LEDS);
@@ -30,21 +30,23 @@ void setup(){
 
 void loop() { 
   // smoothing analog input
-  total = total - readings[readIndex];
-  readings[readIndex] = analogRead(potInput);
-  total = total + readings[readIndex];
-  readIndex = readIndex + 1;
+  sum = sum - readings[index];
 
-  if (readIndex >= numReadings) {
-    readIndex = 0;
+  readings[index] = analogRead(potInput);
+  sum = sum + readings[index];
+
+  index = index + 1;
+
+  if (index >= batch) {
+    index = 0;
   }
 
-  average = total / numReadings;
+  average = sum / batch;
   
-  // map smoothed potentiometer input to hue value of led's
+  // map smoothed potentiometer input to hue value of leds
   int hueValue = map(average, 0, 1023, 0, 255);
   
-  // display chosen hue
+  // display avg hue
   FastLED.showColor(CHSV(hueValue, 255, 191)); 
   delay(25);
 }
